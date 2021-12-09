@@ -105,7 +105,7 @@ static void task_process_handler(void *arg)
     {
         xSemaphoreTake(xMutex, portMAX_DELAY);
         _gEvent = gEvent;
-        gEvent = DETECT;
+        //gEvent = DETECT;
         xSemaphoreGive(xMutex);
 
         if (_gEvent)
@@ -122,15 +122,19 @@ static void task_process_handler(void *arg)
 
                 if (is_detected)
                 {
+					printf("Detected. gEvent is %d\n", _gEvent);
                     switch (_gEvent)
                     {
                     case ENROLL:
+						printf("Enroll -->\n");
                         recognizer->enroll_id((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3}, detect_results.front().keypoint, "", true);
                         ESP_LOGW("ENROLL", "ID %d is enrolled", recognizer->get_enrolled_ids().back().id);
                         frame_show_state = SHOW_STATE_ENROLL;
+						gEvent = DETECT;
                         break;
 
                     case RECOGNIZE:
+						printf("Recognize -->\n");
                         recognize_result = recognizer->recognize((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3}, detect_results.front().keypoint);
                         print_detection_result(detect_results);
                         if (recognize_result.id > 0)
@@ -138,13 +142,16 @@ static void task_process_handler(void *arg)
                         else
                             ESP_LOGE("RECOGNIZE", "Similarity: %f, Match ID: %d", recognize_result.similarity, recognize_result.id);
                         frame_show_state = SHOW_STATE_RECOGNIZE;
+						gEvent = DETECT;
                         break;
 
                     case DELETE:
+						printf("Delete -->\n");
                         vTaskDelay(10);
                         recognizer->delete_id(true);
                         ESP_LOGE("DELETE", "% d IDs left", recognizer->get_enrolled_id_num());
                         frame_show_state = SHOW_STATE_DELETE;
+						gEvent = DETECT;
                         break;
 
                     default:
@@ -221,6 +228,8 @@ static void task_event_handler(void *arg)
     {
         xQueueReceive(xQueueEvent, &(_gEvent), portMAX_DELAY);
         xSemaphoreTake(xMutex, portMAX_DELAY);
+		if (gEvent != _gEvent)
+			printf("Event is %d\n", _gEvent);
         gEvent = _gEvent;
         xSemaphoreGive(xMutex);
     }
