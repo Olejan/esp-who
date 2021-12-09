@@ -26,14 +26,17 @@ void event_generate(void *arg)
         {
         case KEY_SHORT_PRESS:
             recognizer_state = RECOGNIZE;
+            printf("KEY_SHORT_PRESS\n");
             break;
 
         case KEY_LONG_PRESS:
             recognizer_state = ENROLL;
+            printf("KEY_LONG_PRESS\n");
             break;
 
         case KEY_DOUBLE_CLICK:
             recognizer_state = DELETE;
+            printf("KEY_DOUBLE_CLICK\n");
             break;
 
         default:

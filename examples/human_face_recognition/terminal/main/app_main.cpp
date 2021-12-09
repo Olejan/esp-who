@@ -9,7 +9,7 @@ static QueueHandle_t xQueueKeyState = NULL;
 static QueueHandle_t xQueueEventLogic = NULL;
 static button_adc_config_t buttons[4] = {{1, 2800, 3000}, {2, 2250, 2450}, {3, 300, 500}, {4, 850, 1050}};
 
-#define GPIO_BOOT GPIO_NUM_0
+#define GPIO_BOOT GPIO_NUM_15//GPIO_NUM_0
 
 extern "C" void app_main()
 {
