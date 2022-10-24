@@ -10,6 +10,8 @@
 #include "human_face_detect_mnp01.hpp"
 #include "face_recognition_tool.hpp"
 
+#include "../led/who_led.h"
+
 #if CONFIG_MFN_V1
 #if CONFIG_S8
 #include "face_recognition_112_v1_s8.hpp"
@@ -103,16 +105,16 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
 	{
 		stat = (unsigned long) (esp_timer_get_time() / 1000ULL);
 	}
-#if _0
+#if 1//0
 	//printf("jpg_encode_stream. j->len:%d,\tlen:%d\n", j->len, len);
 	for (size_t i = 0; i < len; ++i)
 	{
-		if (((const uint8_t *)data)[i] < 0x10)
-			printf("0");
-		printf("%X, ", ((const uint8_t *)data)[i]);
+		/*if (((const uint8_t *)data)[i] < 0x10)
+			printf("0");*/
+		printf("%02X", ((const uint8_t *)data)[i]);
 		if ((i + 1) % 32 == 0) printf("\n");
 	}
-	//printf("\n");
+    printf(", ");
 #endif
     /*if (httpd_resp_send_chunk(j->req, (const char *)data, len) != ESP_OK)
     {
@@ -121,6 +123,9 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
     j->len += len;
 	if (len == 0)
 	{
+        blink_led(LED_ALWAYS_OFF);
+        printf("\n\n");
+        printf("<---end--->\n");
 		unsigned long time = (unsigned long) (esp_timer_get_time() / 1000ULL) - stat;
 		printf("Encoding time: %lu\n", time);
 	}
@@ -158,14 +163,25 @@ static void task_process_handler(void *arg)
 
             if (xQueueReceive(xQueueFrameI, &frame, portMAX_DELAY))
             {
+/*#if TWO_STAGE_ON
                 std::list<dl::detect::result_t> &detect_candidates = detector.infer((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3});
                 std::list<dl::detect::result_t> &detect_results = detector2.infer((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3}, detect_candidates);
+#else
+                std::list<dl::detect::result_t> &detect_results = detector.infer((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3});
+#endif*/
+                auto st = esp_timer_get_time();
+                std::list<dl::detect::result_t> &detect_results = detector.infer((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3});
+                auto t1 = esp_timer_get_time() - st;
 
                 if (detect_results.size() == 1)
                     is_detected = true;
 
                 if (is_detected)
                 {
+                    printf("detect face time: %llums\n", t1 / 1000ULL);
+                    blink_led(LED_ALWAYS_ON);
+
+                    printf("<---start--->\n");
 					jpg_chunking_t jchunk = {0};
 					frame2jpg_cb(frame, 80, jpg_encode_stream, &jchunk);
 					

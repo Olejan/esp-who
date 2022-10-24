@@ -9,7 +9,7 @@
 
 #include "who_ai_utils.hpp"
 
-#define TWO_STAGE_ON 1
+//#define TWO_STAGE_ON 1
 
 static const char *TAG = "human_face_detection";
 

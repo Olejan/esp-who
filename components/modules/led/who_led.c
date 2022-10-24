@@ -1,8 +1,11 @@
 #include "who_led.h"
+#include "driver/gpio.h"
 
 static const char *TAG = "app_led";
 static QueueHandle_t xQueueLEDControlI = NULL;
 static int gpio_led;
+static led_state_t _led_state = LED_ALWAYS_OFF;
+
 
 #if CONFIG_LED_ILLUMINATOR_ENABLED
 #include "esp_log.h"
@@ -98,6 +101,7 @@ static void led_task(void *arg)
             gpio_set_level(gpio_led, 1);
             break;
         case LED_ON_1S:
+            printf("LED blink OK. GPIO: %d\n", gpio_led);
             gpio_set_level(gpio_led, 1);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             gpio_set_level(gpio_led, 0);
@@ -152,7 +156,7 @@ void register_led(const gpio_num_t led_io_num, const QueueHandle_t control_i)
     gpio_led = led_io_num;
 
     gpio_config_t gpio_conf;
-    gpio_conf.mode = GPIO_MODE_OUTPUT_OD;
+    gpio_conf.mode = GPIO_MODE_DEF_OUTPUT;
     gpio_conf.pull_up_en = 1;
 
     gpio_conf.intr_type = GPIO_INTR_DISABLE;
@@ -160,4 +164,10 @@ void register_led(const gpio_num_t led_io_num, const QueueHandle_t control_i)
     gpio_config(&gpio_conf);
 
     xTaskCreatePinnedToCore(&led_task, "who_led_task", 1 * 1024, NULL, 5, NULL, 0);
+}
+
+void blink_led(led_state_t state)
+{
+    _led_state = state;
+    xQueueSend(xQueueLEDControlI, &_led_state, portMAX_DELAY);
 }

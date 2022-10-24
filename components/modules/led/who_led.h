@@ -31,6 +31,7 @@ typedef enum
 } led_state_t;
 
 void register_led(const gpio_num_t led_io_num, const QueueHandle_t control_i);
+void blink_led(led_state_t state);
 
 #ifdef __cplusplus
 }
