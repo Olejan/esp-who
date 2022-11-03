@@ -25,6 +25,7 @@ typedef enum
     LED_ON_1S,
     LED_ON_2S,
     LED_ON_4S,
+    LED_ON_3ms,
     LED_BLINK_1S,
     LED_BLINK_2S,
     LED_BLINK_4S,

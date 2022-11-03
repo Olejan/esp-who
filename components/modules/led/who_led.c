@@ -116,6 +116,11 @@ static void led_task(void *arg)
             vTaskDelay(4000 / portTICK_PERIOD_MS);
             gpio_set_level(gpio_led, 0);
             break;
+        case LED_ON_3ms:
+            gpio_set_level(gpio_led, 1);
+            vTaskDelay(3 / portTICK_PERIOD_MS);
+            gpio_set_level(gpio_led, 0);
+            break;
         case LED_BLINK_1S:
             for (int i = 0; i < 2; ++i)
             {
