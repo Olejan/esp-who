@@ -85,6 +85,15 @@ static int rgb_printf(camera_fb_t *fb, uint32_t color, const char *format, ...)
     return len;
 }
 
+void printHeapState()
+{
+	char str[64];
+	size_t size = esp_get_free_heap_size();
+	printf("Total free heap space: %d\n", size);
+	size = heap_caps_get_largest_free_block(1 << 2);
+	printf("The largest free block size: %d\n", size);
+}
+
 typedef struct
 {
     //void *req;
@@ -112,9 +121,9 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
 		/*if (((const uint8_t *)data)[i] < 0x10)
 			printf("0");*/
 		printf("%02X", ((const uint8_t *)data)[i]);
-		if ((i + 1) % 32 == 0) printf("\n");
+		//if ((i + 1) % 32 == 0) printf("\n");
 	}
-    printf(", ");
+    //printf(", ");
 #endif
     /*if (httpd_resp_send_chunk(j->req, (const char *)data, len) != ESP_OK)
     {
@@ -123,9 +132,10 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
     j->len += len;
 	if (len == 0)
 	{
-        blink_led(LED_ALWAYS_OFF);
-        printf("\n\n");
+        blink_led(LED_ON_3ms);
+        printf("\n");
         printf("<---end--->\n");
+        printHeapState();
 		unsigned long time = (unsigned long) (esp_timer_get_time() / 1000ULL) - stat;
 		printf("Encoding time: %lu\n", time);
 	}
@@ -179,7 +189,7 @@ static void task_process_handler(void *arg)
                 if (is_detected)
                 {
                     printf("detect face time: %llums\n", t1 / 1000ULL);
-                    blink_led(LED_ALWAYS_ON);
+                    blink_led(LED_ON_3ms);
 
                     printf("<---start--->\n");
 					jpg_chunking_t jchunk = {0};
