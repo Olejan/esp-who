@@ -21,7 +21,7 @@ extern "C" void app_main()
     xQueueEventLogic = xQueueCreate(1, sizeof(int *));
 
     register_button(GPIO_BOOT, xQueueKeyState);
-    register_led(GPIO_WHITE_LED, xQueueLedState);
+    register_led((gpio_num_t)GPIO_WHITE_LED, xQueueLedState);
     //register_led(GPIO_RED_LED, xQueueLedState);
     register_camera(PIXFORMAT_RGB565, FRAMESIZE_VGA
      /*FRAMESIZE_SVGA*//*FRAMESIZE_240X240*/, 2, xQueueAIFrame);

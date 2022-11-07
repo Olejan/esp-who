@@ -98,9 +98,8 @@ typedef struct
 {
     //void *req;
     size_t len;
+    vector<uint8_t> buf;
 } jpg_chunking_t;
-
-unsigned long stat = 0;
 
 static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_t len)
 {
@@ -110,35 +109,18 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
         j->len = 0;
     }
 	
-	if (j->len == 0)
-	{
-		stat = (unsigned long) (esp_timer_get_time() / 1000ULL);
-	}
-#if 1//0
+    if (len)
+    {
+        j->buf.reserve(len);
+    }
+
+    //printf("id: %d, length: %d\n", index, len);
 	//printf("jpg_encode_stream. j->len:%d,\tlen:%d\n", j->len, len);
 	for (size_t i = 0; i < len; ++i)
 	{
-		/*if (((const uint8_t *)data)[i] < 0x10)
-			printf("0");*/
-		printf("%02X", ((const uint8_t *)data)[i]);
-		//if ((i + 1) % 32 == 0) printf("\n");
+        j->buf.push_back(((const uint8_t *)data)[i]);
 	}
-    //printf(", ");
-#endif
-    /*if (httpd_resp_send_chunk(j->req, (const char *)data, len) != ESP_OK)
-    {
-        return 0;
-    }*/
     j->len += len;
-	if (len == 0)
-	{
-        blink_led(LED_ON_3ms);
-        printf("\n");
-        printf("<---end--->\n");
-        printHeapState();
-		unsigned long time = (unsigned long) (esp_timer_get_time() / 1000ULL) - stat;
-		printf("Encoding time: %lu\n", time);
-	}
     return len;
 }
 
@@ -191,10 +173,25 @@ static void task_process_handler(void *arg)
                     printf("detect face time: %llums\n", t1 / 1000ULL);
                     blink_led(LED_ON_3ms);
 
-                    printf("<---start--->\n");
+		            auto start = (unsigned long) (esp_timer_get_time() / 1000ULL);
 					jpg_chunking_t jchunk = {0};
+                    printf("Start time: %llu\n", esp_timer_get_time() / 1000ULL);
 					frame2jpg_cb(frame, 80, jpg_encode_stream, &jchunk);
+                    printf("Frame len: %d, width: %d, height: %d\n", frame->len, frame->width, frame->height);
 					
+                    printf("<---start--->\n");
+                    /*for (size_t i = 0; i < jchunk.len; ++i)
+                    {
+                        printf("%02X", jchunk.buf.at(i));
+                    }*/
+                    printf("\n");
+                    printf("<---end--->\n");
+                    printHeapState();
+                    unsigned long time = (unsigned long) (esp_timer_get_time() / 1000ULL) - start;
+                    printf("Encoding time: %lu\n", time);
+                    printf("End time: %llu\n", esp_timer_get_time() / 1000ULL);
+                    blink_led(LED_ON_3ms);
+
 					/*printf("Detected. gEvent is %d\n", _gEvent);
 					printf("Frame format: %d\n", frame->format);
                     switch (_gEvent)
