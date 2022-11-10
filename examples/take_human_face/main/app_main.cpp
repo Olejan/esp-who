@@ -4,6 +4,7 @@
 #include "event_logic.hpp"
 //#include "who_adc_button.h"
 #include "who_led.h"
+#include "app.h"
 
 static QueueHandle_t xQueueAIFrame = NULL;
 static QueueHandle_t xQueueKeyState = NULL;
@@ -15,16 +16,20 @@ static QueueHandle_t xQueueEventLogic = NULL;
 
 extern "C" void app_main()
 {
+    wifi_init();
+
     xQueueAIFrame = xQueueCreate(2, sizeof(camera_fb_t *));
     xQueueKeyState = xQueueCreate(1, sizeof(int *));
     xQueueLedState = xQueueCreate(1, sizeof(int *));
     xQueueEventLogic = xQueueCreate(1, sizeof(int *));
 
-    register_button(GPIO_BOOT, xQueueKeyState);
+    //register_button(GPIO_BOOT, xQueueKeyState);
     register_led((gpio_num_t)GPIO_WHITE_LED, xQueueLedState);
     //register_led(GPIO_RED_LED, xQueueLedState);
     register_camera(PIXFORMAT_RGB565, FRAMESIZE_VGA
      /*FRAMESIZE_SVGA*//*FRAMESIZE_240X240*/, 2, xQueueAIFrame);
     register_event(xQueueKeyState, xQueueEventLogic);
     register_take_human_face(xQueueAIFrame, xQueueEventLogic, NULL, NULL, true);
+
+    register_post();
 }
